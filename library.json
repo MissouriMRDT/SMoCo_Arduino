@@ -1,0 +1,16 @@
+{
+  "name": "SMoCo_Arduino",
+  "author": "MissouriMRDT",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MissouriMRDT/SMoCo_Arduino.git"
+  },
+  "description": "Embedded software library for communication between Smart MoCo and the teensy, developed for use with Arduino.",
+  "frameworks": [ "arduino" ],
+  "platforms": [ "titiva", "teensy" ],
+  "dependencies": {
+    "ACAN_T4":"https://github.com/pierremolinaro/acan-t4.git"
+  },
+  "examples": []
+}
