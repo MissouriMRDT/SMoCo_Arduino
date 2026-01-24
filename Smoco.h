@@ -21,9 +21,8 @@ private:
     bool m_ignoreLimit;
     uint16_t m_errorGain;
     uint16_t m_lowPassSmoothingAlpha;
-    uint16_t m_P;
-    uint16_t m_I;
-    uint16_t m_D;
+
+    uint16_t m_PID[3] = {0,0,0};
 
 public:
     // constructor
