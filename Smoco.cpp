@@ -9,8 +9,6 @@ void Smoco::setCanID(uint8_t canID) {
     m_canID = canID;
 }
 
-// Telemetry 
-
 enum MessageID {
     MESSAGE_ID_POSITION = 0x0,
     MESSAGE_ID_POSITION_CALIBRATED = 0x1,
@@ -31,6 +29,53 @@ enum TargetID {
     TARGET_ID_VELOCITY = 0x4,
     TARGET_ID_CURRENT = 0x6,
 };
+
+void Smoco::receiveCANMessage(){
+    CANMessage msg;
+    if(m_canID.receive(msg)){
+        // identify each can ID
+        switch( (uint8_t)((msg.id())&(0xF)) ){
+        case MESSAGE_ID_POSITION: {
+            // position telemetry (angle, angular velocity, current, and limits)
+            // assigns telemetry values to member variables
+            m_angle |= msg[0];
+            m_angle |= (msg[1] << 8 );
+            m_angle |= (msg[2] << 16);
+            m_angle |= (msg[3] << 24);
+
+            m_angularVelocity |= msg[4];
+            m_angularVelocity |= (msg[5] << 8);
+
+            m_current |= msg[6];
+
+            m_limSwitchA = msg[7] & 0b1000;
+            m_limSwitchB = msg[7] & 0b0100;
+            m_softLimA = msg[7] & 0b0010;
+            m_softLimB = msg[7] & 0b0001;
+            break;
+        }
+
+        case MESSAGE_ID_POSITION_CALIBRATED: {
+            // position calbirated return status
+            // calibration finished
+            m_calibrationFinished = true;
+            break;
+        }
+        case MESSAGE_ID_ERROR: {
+            // command error; returns ID of failed can msg
+
+            break;
+        }
+        case MESSAGE_ID_ECHO_REPLY: {
+            // echo reply
+
+            break;
+        }
+        }
+    }
+}
+
+
 void Smoco::openLoopDrive(int16_t dutyCycle, bool ignoreLimit) {
     CANMessage msg;
     msg.id = (m_canID << 4) | MESSAGE_ID_TARGET;

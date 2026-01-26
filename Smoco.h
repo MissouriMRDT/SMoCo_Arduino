@@ -12,8 +12,6 @@ private:
     ACAN_T4 *m_canBus;
     uint8_t m_canID;
 
-    //int16_t m_dutyCycle;
-
     int32_t m_angle;
     int16_t m_angularVelocity;
     uint8_t m_current;
@@ -24,6 +22,17 @@ private:
 
     uint16_t m_PID[3] = {0,0,0};
 
+    int32_t m_softLimAPosition;
+    int32_t m_softLimBPosition;
+
+    bool m_limSwitchA;
+    bool m_limSwitchB;
+    bool m_softLimA;
+    bool m_softLimB;
+
+    bool m_calibrationFinished;
+    
+
 public:
     // constructor
     Smoco(ACAN_T4 *canBus, uint8_t canID);
@@ -31,6 +40,7 @@ public:
     void setCanID(uint8_t canID);
 
     //void sendTelemetry();
+    void receiveCANMessage();
 
     void openLoopDrive(int16_t dutyCycle, bool ignoreLimit = false);
     void setJointAngle(uint32_t targetAngle, uint16_t errorGain, bool ignoreLimit = false);
