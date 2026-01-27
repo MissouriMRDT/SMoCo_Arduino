@@ -262,3 +262,12 @@ void Smoco::setSoftLimitBVariable(int32_t limitB){
 void Smoco::setIgnoreLimitVariable(bool ignoreLim){
     m_ignoreLimit = ignoreLim;
 }
+
+void Smoco::setPingTimeVariable(uint64_t pingTime){
+    m_pingTime = pingTime;
+}
+
+
+bool Smoco::getignoreLimitVariable(){
+    return m_ignoreLimit;
+}
