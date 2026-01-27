@@ -59,8 +59,17 @@ public:
     void echoRequest(uint64_t payload);
     void readIncomingMessage(CANMessage msg);
     void smocoPing();
+
+    // Setters
+    void setAngleVariable(int32_t angle);
+    void setPIDVariables(uint16_t P, uint16_t I, uint16_t D);
+    void setAlphaVariable(uint16_t alpha);
+    void setSoftLimitAVariable(int32_t limitA);
+    void setSoftLimitBVariable(int32_t limitB);
+    void setIgnoreLimitVariable(bool ignoreLim);
 };
 #endif
+
 
 
 
