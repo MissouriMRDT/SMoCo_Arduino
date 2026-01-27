@@ -36,16 +36,16 @@ void Smoco::readIncomingMessage(CANMessage msg){
             // position telemetry (angle, angular velocity, current, and limits)
             // assigns telemetry values to member variables
             m_angle = 0;
-            m_angle = msg[0] | (msg[1] << 8) | (msg[2] << 16) | (msg[3] << 24);
+            m_angle = msg.data[0] | (msg.data[1] << 8) | (msg.data[2] << 16) | (msg.data[3] << 24);
 
-            m_angularVelocity = msg[4] | (msg[5] << 8);
+            m_angularVelocity = msg.data[4] | (msg.data[5] << 8);
 
-            m_current = msg[6];
+            m_current = msg.data[6];
 
-            m_limSwitchA = msg[7] & 0b1000;
-            m_limSwitchB = msg[7] & 0b0100;
-            m_softLimA = msg[7] & 0b0010;
-            m_softLimB = msg[7] & 0b0001;
+            m_limSwitchA = msg.data[7] & 0b1000;
+            m_limSwitchB = msg.data[7] & 0b0100;
+            m_softLimA = msg.data[7] & 0b0010;
+            m_softLimB = msg.data[7] & 0b0001;
             break;
         }
         case MESSAGE_ID_POSITION_CALIBRATED: {
@@ -56,13 +56,13 @@ void Smoco::readIncomingMessage(CANMessage msg){
         }
         case MESSAGE_ID_ERROR: {
             // command error; returns ID of failed can msg
-            commandErrorID = msg[0];
+            commandErrorID = msg.data[0];
             break;
         }
         case MESSAGE_ID_ECHO_REPLY: {
             // echo reply
             m_pinTime = 0;
-            m_pingTime = millis() - (msg[0] | (msg[1] << 8) | (msg[2] << 16) | (msg[3] << 24) | (msg[4] << 32) | (msg[5] << 40) | (msg[6] << 48) | (msg[7] << 56));
+            m_pingTime = millis() - (msg.data[0] | (msg.data[1] << 8) | (msg.data[2] << 16) | (msg.data[3] << 24) | (msg.data[4] << 32) | (msg.data[5] << 40) | (msg.data[6] << 48) | (msg.data[7] << 56));
             break;
         }
         }
@@ -235,4 +235,5 @@ void Smoco::echoRequest(uint64_t payload) {
 void Smoco::smocoPing(){
     echoRequest(millis());
 }
+
 
