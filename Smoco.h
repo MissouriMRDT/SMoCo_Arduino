@@ -22,6 +22,8 @@ private:
     uint16_t m_errorGain;
     uint16_t m_lowPassSmoothingAlpha;
 
+    bool m_isCalibrated;
+
     uint16_t m_PID[3] = {0,0,0};
 
     int32_t m_softLimitA;
@@ -32,9 +34,9 @@ private:
     bool m_softLimA;
     bool m_softLimB;
 
-    bool pingTime;
+    bool m_pingTime;
 
-    uint8_t commandErrorID; // :)
+    uint8_t m_commandErrorID; // :)
 
 public:
     // constructor
@@ -59,5 +61,6 @@ public:
     void smocoPing();
 };
 #endif
+
 
 
