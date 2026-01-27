@@ -12,6 +12,8 @@ private:
     ACAN_T4 *m_canBus;
     uint8_t m_canID;
 
+    //int16_t m_dutyCycle;
+
     int32_t m_angle;
     int16_t m_angularVelocity;
     uint8_t m_current;
@@ -22,16 +24,17 @@ private:
 
     uint16_t m_PID[3] = {0,0,0};
 
-    int32_t m_softLimAPosition;
-    int32_t m_softLimBPosition;
+    int32_t m_softLimitA;
+    int32_t m_softLimitB;
 
     bool m_limSwitchA;
     bool m_limSwitchB;
     bool m_softLimA;
     bool m_softLimB;
 
-    bool m_calibrationFinished;
-    
+    bool pingTime;
+
+    uint8_t commandErrorID; // :)
 
 public:
     // constructor
@@ -40,7 +43,6 @@ public:
     void setCanID(uint8_t canID);
 
     //void sendTelemetry();
-    void receiveCANMessage();
 
     void openLoopDrive(int16_t dutyCycle, bool ignoreLimit = false);
     void setJointAngle(uint32_t targetAngle, uint16_t errorGain, bool ignoreLimit = false);
@@ -48,7 +50,7 @@ public:
     void setJointCurrent(int16_t targetCurrent, uint16_t errorGain, bool ignoreLimit = false);
     void setLowPassSmoothingFactor(uint16_t alpha);
     void setPID(uint16_t P, uint16_t I, uint16_t D);
-    void setSoftLimitPosition(int32_t position_A, int32_t position_B);
+    void setSoftLimitPosition(int32_t positionA, int32_t positionB);
     void startPositionCalibration(int16_t dutyCycle, int32_t limitSwitchPosition);
     void debugTelemetry(uint8_t enable);
     void stopAndReset();
