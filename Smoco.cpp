@@ -271,3 +271,6 @@ void Smoco::setPingTimeVariable(uint64_t pingTime){
 bool Smoco::getignoreLimitVariable(){
     return m_ignoreLimit;
 }
+int32_t Smoco::getAngleVariable(){
+    return m_angle;
+}
