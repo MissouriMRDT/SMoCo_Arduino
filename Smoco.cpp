@@ -56,12 +56,12 @@ void Smoco::readIncomingMessage(CANMessage msg){
         }
         case MESSAGE_ID_ERROR: {
             // command error; returns ID of failed can msg
-            commandErrorID = msg.data[0];
+            m_commandErrorID = msg.data[0];
             break;
         }
         case MESSAGE_ID_ECHO_REPLY: {
             // echo reply
-            m_pinTime = 0;
+            m_pingTime = 0;
             m_pingTime = millis() - (msg.data[0] | (msg.data[1] << 8) | (msg.data[2] << 16) | (msg.data[3] << 24) | (msg.data[4] << 32) | (msg.data[5] << 40) | (msg.data[6] << 48) | (msg.data[7] << 56));
             break;
         }
@@ -235,5 +235,6 @@ void Smoco::echoRequest(uint64_t payload) {
 void Smoco::smocoPing(){
     echoRequest(millis());
 }
+
 
 
