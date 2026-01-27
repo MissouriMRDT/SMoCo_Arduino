@@ -72,8 +72,14 @@ public:
     // getters
     int32_t getAngleVariable();
     bool getignoreLimitVariable();
+
+    bool getSoftLimitAVariable();
+    bool getSoftLimitBVariable();
+    bool getLimitSwitchAVariable();
+    bool getLimitSwitchBVariable();
 };
 #endif
+
 
 
 
