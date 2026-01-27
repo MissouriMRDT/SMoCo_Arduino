@@ -67,8 +67,13 @@ public:
     void setSoftLimitAVariable(int32_t limitA);
     void setSoftLimitBVariable(int32_t limitB);
     void setIgnoreLimitVariable(bool ignoreLim);
+    void setPingTimeVariable(uint64_t pingTIme);
+
+    // getters
+    bool getignoreLimitVariable();
 };
 #endif
+
 
 
 
