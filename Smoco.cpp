@@ -30,23 +30,17 @@ enum TargetID {
     TARGET_ID_CURRENT = 0x6,
 };
 
-void Smoco::receiveCANMessage(){
-    CANMessage msg;
-    if(m_canID.receive(msg)){
-        // identify each can ID
+void Smoco::readIncomingMessage(CANMessage msg){
         switch( (uint8_t)((msg.id())&(0xF)) ){
         case MESSAGE_ID_POSITION: {
             // position telemetry (angle, angular velocity, current, and limits)
             // assigns telemetry values to member variables
-            m_angle |= msg[0];
-            m_angle |= (msg[1] << 8 );
-            m_angle |= (msg[2] << 16);
-            m_angle |= (msg[3] << 24);
+            m_angle = 0;
+            m_angle = msg[0] | (msg[1] << 8) | (msg[2] << 16) | (msg[3] << 24);
 
-            m_angularVelocity |= msg[4];
-            m_angularVelocity |= (msg[5] << 8);
+            m_angularVelocity = msg[4] | (msg[5] << 8);
 
-            m_current |= msg[6];
+            m_current = msg[6];
 
             m_limSwitchA = msg[7] & 0b1000;
             m_limSwitchB = msg[7] & 0b0100;
@@ -54,7 +48,6 @@ void Smoco::receiveCANMessage(){
             m_softLimB = msg[7] & 0b0001;
             break;
         }
-
         case MESSAGE_ID_POSITION_CALIBRATED: {
             // position calbirated return status
             // calibration finished
@@ -63,18 +56,17 @@ void Smoco::receiveCANMessage(){
         }
         case MESSAGE_ID_ERROR: {
             // command error; returns ID of failed can msg
-
+            commandErrorID = msg[0];
             break;
         }
         case MESSAGE_ID_ECHO_REPLY: {
             // echo reply
-
+            m_pinTime = 0;
+            m_pingTime = millis() - (msg[0] | (msg[1] << 8) | (msg[2] << 16) | (msg[3] << 24) | (msg[4] << 32) | (msg[5] << 40) | (msg[6] << 48) | (msg[7] << 56));
             break;
         }
         }
     }
-}
-
 
 void Smoco::openLoopDrive(int16_t dutyCycle, bool ignoreLimit) {
     CANMessage msg;
@@ -238,4 +230,8 @@ void Smoco::echoRequest(uint64_t payload) {
         Serial.print("OOPS! ");
         Serial.println(status, HEX);
     }
+}
+
+void Smoco::smocoPing(){
+    echoReply(millis());
 }
