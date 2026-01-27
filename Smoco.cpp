@@ -51,7 +51,7 @@ void Smoco::readIncomingMessage(CANMessage msg){
         case MESSAGE_ID_POSITION_CALIBRATED: {
             // position calbirated return status
             // calibration finished
-            m_calibrationFinished = true;
+            m_isCalibrated = true;
             break;
         }
         case MESSAGE_ID_ERROR: {
@@ -235,6 +235,7 @@ void Smoco::echoRequest(uint64_t payload) {
 void Smoco::smocoPing(){
     echoRequest(millis());
 }
+
 
 
 
