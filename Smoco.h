@@ -55,5 +55,7 @@ public:
     void debugTelemetry(uint8_t enable);
     void stopAndReset();
     void echoRequest(uint64_t payload);
+    void smocoPing();
 };
 #endif
+
