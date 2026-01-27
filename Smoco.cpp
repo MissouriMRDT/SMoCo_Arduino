@@ -274,15 +274,16 @@ bool Smoco::getignoreLimitVariable(){
 int32_t Smoco::getAngleVariable(){
     return m_angle;
 }
-bool getSoftLimitAVariable(){
+bool Smoco::getSoftLimitAVariable(){
     return m_softLimA;
 }
-bool getSoftLimitBVariable(){
+bool Smoco::getSoftLimitBVariable(){
     return m_softLimB;
 }
-bool getLimitSwitchAVariable(){
+bool Smoco::getLimitSwitchAVariable(){
    return m_limSwitchA;
 }
-bool getLimitSwitchBVariable(){
+bool Smoco::getLimitSwitchBVariable(){
     return m_limSwitchB;
 }
+
