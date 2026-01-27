@@ -237,5 +237,28 @@ void Smoco::smocoPing(){
 }
 
 
+void Smoco::setAngleVariable(int32_t angle){
+    m_angle = angle;
+}
 
+void Smoco::setPIDVariables(uint16_t P, uint16_t I, uint16_t D){
+    m_PID[0] = P;
+    m_PID[1] = I;
+    m_PID[2] = D;
+}
 
+void Smoco::setAlphaVariable(uint16_t alpha){
+    m_lowPassSmoothingAlpha = alpha;
+}
+
+void Smoco::setSoftLimitAVariable(int32_t limitA){
+    m_softLimitA = limitA;
+}
+
+void Smoco::setSoftLimitBVariable(int32_t limitB){
+    m_softLimitB = limitB;
+}
+
+void Smoco::setIgnoreLimitVariable(bool ignoreLim){
+    m_ignoreLimit = ignoreLim;
+}
