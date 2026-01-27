@@ -233,5 +233,6 @@ void Smoco::echoRequest(uint64_t payload) {
 }
 
 void Smoco::smocoPing(){
-    echoReply(millis());
+    echoRequest(millis());
 }
+
