@@ -31,7 +31,7 @@ enum TargetID {
 };
 
 void Smoco::readIncomingMessage(CANMessage msg){
-        switch( (uint8_t)((msg.id())&(0xF)) ){
+        switch( (uint8_t)((msg.id & 0xF)) ){
         case MESSAGE_ID_POSITION: {
             // position telemetry (angle, angular velocity, current, and limits)
             // assigns telemetry values to member variables
