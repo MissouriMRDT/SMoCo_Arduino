@@ -34,7 +34,7 @@ private:
     bool m_softLimA;
     bool m_softLimB;
 
-    bool m_pingTime;
+    uint64_t m_pingTime;
 
     uint8_t m_commandErrorID; // :)
 
@@ -73,6 +73,7 @@ public:
     bool getignoreLimitVariable();
 };
 #endif
+
 
 
 
