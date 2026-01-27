@@ -70,9 +70,11 @@ public:
     void setPingTimeVariable(uint64_t pingTIme);
 
     // getters
+    int32_t getAngleVariable();
     bool getignoreLimitVariable();
 };
 #endif
+
 
 
 
