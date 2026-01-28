@@ -37,6 +37,9 @@ private:
     uint64_t m_pingTime;
 
     uint8_t m_commandErrorID; // :)
+    bool m_isPinging;
+
+    uint64_t m_echoData;
 
 public:
     // constructor
@@ -77,6 +80,7 @@ public:
     bool getSoftLimitBVariable();
     bool getLimitSwitchAVariable();
     bool getLimitSwitchBVariable();
+    bool getEchoDataVariable();
 };
 #endif
 
