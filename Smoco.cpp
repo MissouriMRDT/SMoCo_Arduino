@@ -63,11 +63,11 @@ void Smoco::readIncomingMessage(CANMessage msg){
             // echo reply
             if(m_isPinging){
                 m_pingTime = 0;
-                m_pingTime = millis() - (*(uint64_t)msg.data);
+                m_pingTime = millis() - (*(uint64_t*)msg.data);
                 m_isPinging = false;
             }
             else{
-                m_echoData = (*(uint4_t)msg.data);
+                m_echoData = (*(uint64_t*)msg.data);
             }
             break;
         }
@@ -296,5 +296,6 @@ bool Smoco::getLimitSwitchBVariable(){
 bool Smoco::getEchoDataVariable(){
     return m_echoData;
 }
+
 
 
