@@ -80,9 +80,10 @@ public:
     bool getSoftLimitBVariable();
     bool getLimitSwitchAVariable();
     bool getLimitSwitchBVariable();
-    bool getEchoDataVariable();
+    uint64_t getEchoDataVariable();
 };
 #endif
+
 
 
 
