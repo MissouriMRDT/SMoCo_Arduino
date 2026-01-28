@@ -239,7 +239,7 @@ void Smoco::echoRequest(uint64_t payload) {
 }
 
 void Smoco::smocoPing(){
-    m_pinging = true;
+    m_isPinging = true;
     echoRequest(millis());
 }
 
@@ -296,3 +296,4 @@ bool Smoco::getLimitSwitchBVariable(){
 bool Smoco::getEchoDataVariable(){
     return m_echoData;
 }
+
