@@ -61,8 +61,14 @@ void Smoco::readIncomingMessage(CANMessage msg){
         }
         case MESSAGE_ID_ECHO_REPLY: {
             // echo reply
-            m_pingTime = 0;
-            m_pingTime = millis() - (msg.data[0] | (msg.data[1] << 8) | (msg.data[2] << 16) | (msg.data[3] << 24) | (msg.data[4] << 32) | (msg.data[5] << 40) | (msg.data[6] << 48) | (msg.data[7] << 56));
+            if(m_isPinging){
+                m_pingTime = 0;
+                m_pingTime = millis() - (msg.data[0] | (msg.data[1] << 8) | (msg.data[2] << 16) | (msg.data[3] << 24) | (msg.data[4] << 32) | (msg.data[5] << 40) | (msg.data[6] << 48) | (msg.data[7] << 56));
+                m_isPinging = false;
+            }
+            else{
+                m_echoData = msg.data[0] | (msg.data[1] << 8) | (msg.data[2] << 16) | (msg.data[3] << 24) | (msg.data[4] << 32) | (msg.data[5] << 40) | (msg.data[6] << 48) | (msg.data[7] << 56);
+            }
             break;
         }
         }
@@ -233,6 +239,7 @@ void Smoco::echoRequest(uint64_t payload) {
 }
 
 void Smoco::smocoPing(){
+    m_pinging = true;
     echoRequest(millis());
 }
 
@@ -286,4 +293,6 @@ bool Smoco::getLimitSwitchAVariable(){
 bool Smoco::getLimitSwitchBVariable(){
     return m_limSwitchB;
 }
-
+bool Smoco::getEchoDataVariable(){
+    return m_echoData;
+}
