@@ -63,11 +63,11 @@ void Smoco::readIncomingMessage(CANMessage msg){
             // echo reply
             if(m_isPinging){
                 m_pingTime = 0;
-                m_pingTime = millis() - (msg.data[0] | (msg.data[1] << 8) | (msg.data[2] << 16) | (msg.data[3] << 24) | (msg.data[4] << 32) | (msg.data[5] << 40) | (msg.data[6] << 48) | (msg.data[7] << 56));
+                m_pingTime = millis() - ((uint64_t)msg.data[0] | ((uint64_t)msg.data[1] << 8) | ((uint64_t)msg.data[2] << 16) | ((uint64_t)msg.data[3] << 24) | ((uint64_t)msg.data[4] << 32) | ((uint64_t)msg.data[5] << 40) | ((uint64_t)msg.data[6] << 48) | ((uint64_t)msg.data[7] << 56));
                 m_isPinging = false;
             }
             else{
-                m_echoData = msg.data[0] | (msg.data[1] << 8) | (msg.data[2] << 16) | (msg.data[3] << 24) | (msg.data[4] << 32) | (msg.data[5] << 40) | (msg.data[6] << 48) | (msg.data[7] << 56);
+                m_echoData = msg.data[0] | ((uint64_t)msg.data[1] << 8) | ((uint64_t)msg.data[2] << 16) | ((uint64_t)msg.data[3] << 24) | ((uint64_t)msg.data[4] << 32) | ((uint64_t)msg.data[5] << 40) | ((uint64_t)msg.data[6] << 48) | ((uint64_t)msg.data[7] << 56);
             }
             break;
         }
