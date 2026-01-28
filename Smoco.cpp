@@ -293,9 +293,10 @@ bool Smoco::getLimitSwitchAVariable(){
 bool Smoco::getLimitSwitchBVariable(){
     return m_limSwitchB;
 }
-bool Smoco::getEchoDataVariable(){
+uint64_t Smoco::getEchoDataVariable(){
     return m_echoData;
 }
+
 
 
 
