@@ -81,8 +81,10 @@ public:
     bool getLimitSwitchAVariable();
     bool getLimitSwitchBVariable();
     uint64_t getEchoDataVariable();
+    uint64_t getPingTimeVariable();
 };
 #endif
+
 
 
 
