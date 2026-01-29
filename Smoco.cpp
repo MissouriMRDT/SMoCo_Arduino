@@ -296,6 +296,10 @@ bool Smoco::getLimitSwitchBVariable(){
 uint64_t Smoco::getEchoDataVariable(){
     return m_echoData;
 }
+uint64_t Smoco::getPingTimeVariable(){
+    return m_pingTime;
+}
+
 
 
 
