@@ -34,7 +34,7 @@ private:
     bool m_softLimA;
     bool m_softLimB;
 
-    uint64_t m_pingTime;
+    uint16_t m_pingTime;
 
     uint8_t m_commandErrorID; // :)
     bool m_isPinging;
@@ -81,9 +81,10 @@ public:
     bool getLimitSwitchAVariable();
     bool getLimitSwitchBVariable();
     uint64_t getEchoDataVariable();
-    uint64_t getPingTimeVariable();
+    uint16_t getPingTimeVariable();
 };
 #endif
+
 
 
 
