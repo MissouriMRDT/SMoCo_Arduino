@@ -52,11 +52,6 @@ void Smoco::sync(CANMessage message) {
       break;
     }
   }
-
-  if (millis() - m_lastEchoResponseTime > m_pingTimeout){
-    // Very big numer indicating smoco dropped
-    m_pingTime = UINT16_MAX;
-  } 
 }
 
 bool Smoco::driveOpenLoop(int16_t dutyCycle, bool ignoreLimit) {
@@ -200,6 +195,10 @@ bool Smoco::stopAndReset() {
 }
 
 bool Smoco::echoRequest(uint64_t payload) {
+  if (millis() - m_lastEchoResponseTime > m_pingTimeout){
+    // Very big numer indicating smoco dropped
+    m_pingTime = UINT16_MAX;
+  } 
   m_echoRequestPayload = payload;
   return m_canBus->tryToSend(CANMessage{
       .id = (m_canID << 4) | MESSAGE_ID_ECHO_REQUEST,
