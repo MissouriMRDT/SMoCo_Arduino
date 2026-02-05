@@ -48,9 +48,15 @@ void Smoco::sync(CANMessage message) {
     case MESSAGE_ID_ECHO_REPLY:
       m_echoResponse = smocoCANMessage->echoReply.payload;
       m_pingTime = millis() - m_echoResponse;
+      m_lastEchoResponseTime = millis();
       break;
     }
   }
+
+  if (millis() - m_lastEchoResponseTime > m_pingTimeout){
+    // Very big numer indicating smoco dropped
+    m_pingTime = UINT16_MAX;
+  } 
 }
 
 bool Smoco::driveOpenLoop(int16_t dutyCycle, bool ignoreLimit) {

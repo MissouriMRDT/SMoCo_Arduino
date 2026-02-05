@@ -132,8 +132,10 @@ public:
 
   uint64_t m_echoRequestPayload;
   uint64_t m_echoResponse;
-  bool m_pinging;
-  uint64_t m_pingTime;
+  bool m_pinging = false;
+  uint64_t m_pingTime = UINT16_MAX;
+  uint64_t m_lastEchoResponseTime = 0;
+  uint64_t m_pingTimeout = 10000;
 
   uint8_t m_commandErrorID;
 
