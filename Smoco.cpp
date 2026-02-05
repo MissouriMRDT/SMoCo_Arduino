@@ -199,7 +199,7 @@ bool Smoco::echoRequest(uint64_t payload) {
       .id = (m_canID << 4) | MESSAGE_ID_ECHO_REQUEST,
       .len = 8,
       .data64 =
-          SmocoCANMessage{.echoRequestPayload = {.payload = m_echoResponse}}
+          SmocoCANMessage{.echoRequestPayload = {.payload = m_echoRequestPayload}}
               .data64});
 }
 
@@ -207,3 +207,4 @@ bool Smoco::ping() {
   m_pinging = true;
   return echoRequest(millis());
 }
+
