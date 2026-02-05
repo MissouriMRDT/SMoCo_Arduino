@@ -3,32 +3,25 @@
 
 #include <ACAN_T4.h>
 
-#define MESSAGE_ID_POSITION 0x0
-#define MESSAGE_ID_POSITION_CALIBRATED 0x1
-#define MESSAGE_ID_TARGET 0x2
-#define MESSAGE_ID_SMOOTHING 0x3
-#define MESSAGE_ID_PID 0x4
-#define MESSAGE_ID_SOFT_LIMIT 0x5
-#define MESSAGE_ID_CALIBRATE 0x6
-#define MESSAGE_ID_DEBUG 0x7
-#define MESSAGE_ID_STOP 0xC
-#define MESSAGE_ID_ERROR 0xD
-#define MESSAGE_ID_ECHO_REQUEST 0xE
-#define MESSAGE_ID_ECHO_REPLY 0xF
+#define SMOCO_CAN_BAUD_RATE 125000
 
-#define MESSAGE_SID_OPEN_LOOP 0x0
-#define MESSAGE_SID_POSITION 0x2
-#define MESSAGE_SID_VELOCITY 0x4
-#define MESSAGE_SID_CURRENT 0x6
+#define SMOCO_MESSAGE_ID_POSITION 0x0
+#define SMOCO_MESSAGE_ID_POSITION_CALIBRATED 0x1
+#define SMOCO_MESSAGE_ID_TARGET 0x2
+#define SMOCO_MESSAGE_ID_SMOOTHING 0x3
+#define SMOCO_MESSAGE_ID_PID 0x4
+#define SMOCO_MESSAGE_ID_SOFT_LIMIT 0x5
+#define SMOCO_MESSAGE_ID_CALIBRATE 0x6
+#define SMOCO_MESSAGE_ID_DEBUG 0x7
+#define SMOCO_MESSAGE_ID_STOP 0xC
+#define SMOCO_MESSAGE_ID_ERROR 0xD
+#define SMOCO_MESSAGE_ID_ECHO_REQUEST 0xE
+#define SMOCO_MESSAGE_ID_ECHO_REPLY 0xF
 
-enum class ControlMode {
-  STOP,
-  OPEN_LOOP,
-  POSITION,
-  VELOCITY,
-  CURRENT,
-  CALIBRATING
-};
+#define SMOCO_MESSAGE_SID_OPEN_LOOP 0x0
+#define SMOCO_MESSAGE_SID_POSITION 0x2
+#define SMOCO_MESSAGE_SID_VELOCITY 0x4
+#define SMOCO_MESSAGE_SID_CURRENT 0x6
 
 typedef union {
   uint64_t data64;
@@ -65,8 +58,8 @@ typedef union {
     };
   } target;
   struct __attribute__((__packed__)) {
-    uint16_t alpha;
-  } setLowPassSmoothingFactor;
+    double rampRate;
+  } setRampRate;
   struct __attribute__((__packed__)) {
     uint16_t p;
     uint16_t i;
@@ -103,45 +96,49 @@ class Smoco {
 public:
   ACAN_T4 *m_canBus;
 
-  uint32_t m_canID;
+  uint32_t m_canID; // Upper 2 nybbles of CAN ID
 
-  int32_t m_position;
-  int16_t m_velocity;
-  uint8_t m_current;
+  int32_t m_position; // (step)
+  int16_t m_velocity; // (step/s)
+  uint8_t m_current;  // (A)
 
-  bool m_ignoreLimit;
-  int16_t m_dutyCycle;
-  uint16_t m_errorGain;
-  int32_t m_targetPosition;
-  int32_t m_targetVelocity;
-  uint16_t m_targetCurrent;
-  uint16_t m_lowPassSmoothingFactor;
+  bool m_ignoreLimit;       // true: ignore limit switch actuation
+  int16_t m_dutyCycle;      // (1/32768)
+  uint16_t m_errorGain;     // (1/1024)
+  int32_t m_targetPosition; // (step)
+  int32_t m_targetVelocity; // (step/s)
+  uint16_t m_targetCurrent; // (A)
+  double m_rampRate;        // (1/s)
   uint16_t m_PID[3];
-  int32_t m_softLimitAPosition;
-  int32_t m_softLimitBPosition;
-  int16_t m_calibrationDutyCycle;
-  int32_t m_calibrationPosition;
-  bool m_debugTelemetryEnabled;
+  int32_t m_softLimitAPosition;   // (step)
+  int32_t m_softLimitBPosition;   // (step)
+  int16_t m_calibrationDutyCycle; // (1/32768)
+  int32_t m_calibrationPosition;  // (step)
+  bool m_debugTelemetryEnabled;   // true: SMoCo will continuously send debug
+                                  // telemetry
 
-  bool m_calibrated;
+  bool m_calibrated; // true: received Position Calibrated message and
+                     // calibratePosition has not been called since
 
-  bool m_limitSwitchA;
-  bool m_limitSwitchB;
-  bool m_softLimitA;
-  bool m_softLimitB;
+  bool m_limitSwitchA; // true: limit switch A depressed
+  bool m_limitSwitchB; // true: limit switch B depressed
+  bool m_softLimitA;   // true: soft limit A reached
+  bool m_softLimitB;   // true: soft limit B reached
 
-  uint64_t m_echoRequestPayload;
-  uint64_t m_echoResponse;
-  bool m_pinging = false;
-  uint64_t m_pingTime = UINT16_MAX;
-  uint64_t m_lastEchoResponseTime = 0;
-  uint64_t m_pingTimeout = 10000;
+  uint32_t m_echoRequestAt;      // (ms) time echo request was sent
+  uint64_t m_echoRequestPayload; // payload of most recent sent Echo Request
+  uint64_t m_echoResponse;       // payload of most recent received Echo Reply
+  uint64_t m_pingTime =
+      UINT16_MAX; // (ms) ping round trip time or UINT16_MAX after ping is
+                  // called when millis() > m_echoRequestAt + m_pingTimeout
+  uint64_t m_pingTimeout = 10000; // (ms)
 
-  uint8_t m_commandErrorID;
+  uint8_t
+      m_commandErrorID; // ID of the last sent command SMoCo considered invalid
 
   SmocoDebugTelemetry m_debugTelemetry;
 
-  bool sendLowPassSmoothingFactor();
+  bool sendRampRate();
   bool sendPID();
   bool sendSoftLimitPosition();
 
@@ -154,14 +151,15 @@ public:
                            bool ignoreLimit = false);
   bool driveTargetCurrent(int16_t targetCurrent, uint16_t errorGain,
                           bool ignoreLimit = false);
-  bool setLowPassSmoothingFactor(uint16_t alpha);
+  bool setRampRate(double rampRate);
   bool setPID(uint16_t P, uint16_t I, uint16_t D);
   bool setSoftLimitPosition(int32_t positionA, int32_t positionB);
   bool calibratePosition(int16_t dutyCycle, int32_t limitSwitchPosition);
   bool debugTelemetry(uint8_t enable);
   bool stopAndReset();
   bool echoRequest(uint64_t payload);
-  void sync(CANMessage msg);
+  void sync(CANMessage msg); // Update telemetry variables from the received
+                             // message and send a response if necessary
   bool ping();
 };
 #endif

@@ -17,19 +17,19 @@ void Smoco::sync(CANMessage message) {
   if (message.rtr) {
     // Send missing parameter.
     switch (message.id & 0xF) {
-    case MESSAGE_ID_SMOOTHING:
-      sendLowPassSmoothingFactor();
+    case SMOCO_MESSAGE_ID_SMOOTHING:
+      sendRampRate();
       break;
-    case MESSAGE_ID_PID:
+    case SMOCO_MESSAGE_ID_PID:
       sendPID();
       break;
-    case MESSAGE_ID_SOFT_LIMIT:
+    case SMOCO_MESSAGE_ID_SOFT_LIMIT:
       sendSoftLimitPosition();
       break;
     }
   } else {
     switch (message.id & 0xF) {
-    case MESSAGE_ID_POSITION:
+    case SMOCO_MESSAGE_ID_POSITION:
       m_position = smocoCANMessage->position.position;
       m_velocity = smocoCANMessage->position.velocity;
       m_current = smocoCANMessage->position.current;
@@ -39,16 +39,15 @@ void Smoco::sync(CANMessage message) {
       m_softLimitA = !!(smocoCANMessage->position.flags & (1 << 5));
       m_softLimitB = !!(smocoCANMessage->position.flags & (1 << 4));
       break;
-    case MESSAGE_ID_POSITION_CALIBRATED:
+    case SMOCO_MESSAGE_ID_POSITION_CALIBRATED:
       m_calibrated = true;
       break;
-    case MESSAGE_ID_ERROR:
+    case SMOCO_MESSAGE_ID_ERROR:
       m_commandErrorID = smocoCANMessage->commandError.commandID;
       break;
-    case MESSAGE_ID_ECHO_REPLY:
+    case SMOCO_MESSAGE_ID_ECHO_REPLY:
       m_echoResponse = smocoCANMessage->echoReply.payload;
       m_pingTime = millis() - m_echoResponse;
-      m_lastEchoResponseTime = millis();
       break;
     }
   }
@@ -58,11 +57,12 @@ bool Smoco::driveOpenLoop(int16_t dutyCycle, bool ignoreLimit) {
   m_dutyCycle = dutyCycle;
   m_ignoreLimit = !!ignoreLimit;
   return m_canBus->tryToSend(CANMessage{
-      .id = (m_canID << 4) | MESSAGE_ID_TARGET,
+      .id = (m_canID << 4) | SMOCO_MESSAGE_ID_TARGET,
       .len = 3,
       .data64 =
           SmocoCANMessage{
-              .target = {.sid = MESSAGE_SID_OPEN_LOOP + (uint8_t)m_ignoreLimit,
+              .target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_OPEN_LOOP |
+                                          m_ignoreLimit),
                          .openLoop = {.dutyCycle = m_dutyCycle}}}
               .data64});
 }
@@ -73,11 +73,12 @@ bool Smoco::driveTargetPosition(int32_t targetPosition, uint16_t errorGain,
   m_errorGain = errorGain;
   m_ignoreLimit = !!ignoreLimit;
   return m_canBus->tryToSend(CANMessage{
-      .id = (m_canID << 4) | MESSAGE_ID_TARGET,
+      .id = (m_canID << 4) | SMOCO_MESSAGE_ID_TARGET,
       .len = 7,
       .data64 =
           SmocoCANMessage{
-              .target = {.sid = MESSAGE_SID_POSITION + (uint8_t)m_ignoreLimit,
+              .target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_POSITION |
+                                          m_ignoreLimit),
                          .targetPosition = {.errorGain = m_errorGain,
                                             .position = m_targetPosition}}}
               .data64});
@@ -89,11 +90,12 @@ bool Smoco::driveTargetVelocity(int32_t targetVelocity, uint16_t errorGain,
   m_errorGain = errorGain;
   m_ignoreLimit = !!ignoreLimit;
   return m_canBus->tryToSend(CANMessage{
-      .id = (m_canID << 4) | MESSAGE_ID_TARGET,
+      .id = (m_canID << 4) | SMOCO_MESSAGE_ID_TARGET,
       .len = 7,
       .data64 =
           SmocoCANMessage{
-              .target = {.sid = MESSAGE_SID_VELOCITY + (uint8_t)m_ignoreLimit,
+              .target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_VELOCITY |
+                                          m_ignoreLimit),
                          .targetVelocity = {.errorGain = m_errorGain,
                                             .velocity = m_targetVelocity}}}
               .data64});
@@ -105,29 +107,28 @@ bool Smoco::driveTargetCurrent(int16_t targetCurrent, uint16_t errorGain,
   m_errorGain = errorGain;
   m_ignoreLimit = !!ignoreLimit;
   return m_canBus->tryToSend(CANMessage{
-      .id = (m_canID << 4) | MESSAGE_ID_TARGET,
+      .id = (m_canID << 4) | SMOCO_MESSAGE_ID_TARGET,
       .len = 5,
       .data64 =
           SmocoCANMessage{
-              .target = {.sid = MESSAGE_SID_CURRENT + (uint8_t)m_ignoreLimit,
+              .target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_CURRENT |
+                                          m_ignoreLimit),
                          .targetCurrent = {.errorGain = m_targetCurrent,
                                            .current = targetCurrent}}}
               .data64});
 }
 
-bool Smoco::setLowPassSmoothingFactor(uint16_t alpha) {
-  m_lowPassSmoothingFactor = alpha;
-  return sendLowPassSmoothingFactor();
+bool Smoco::setRampRate(double rampRate) {
+  m_rampRate = rampRate;
+  return sendRampRate();
 }
 
-bool Smoco::sendLowPassSmoothingFactor() {
+bool Smoco::sendRampRate() {
   return m_canBus->tryToSend(CANMessage{
-      .id = (m_canID << 4) | MESSAGE_ID_SMOOTHING,
+      .id = (m_canID << 4) | SMOCO_MESSAGE_ID_SMOOTHING,
       .len = 2,
       .data64 =
-          SmocoCANMessage{
-              .setLowPassSmoothingFactor = {.alpha = m_lowPassSmoothingFactor}}
-              .data64});
+          SmocoCANMessage{.setRampRate = {.rampRate = m_rampRate}}.data64});
 }
 
 bool Smoco::setPID(uint16_t P, uint16_t I, uint16_t D) {
@@ -139,7 +140,7 @@ bool Smoco::setPID(uint16_t P, uint16_t I, uint16_t D) {
 
 bool Smoco::sendPID() {
   return m_canBus->tryToSend(CANMessage{
-      .id = (m_canID << 4) | MESSAGE_ID_PID,
+      .id = (m_canID << 4) | SMOCO_MESSAGE_ID_PID,
       .len = 6,
       .data64 =
           SmocoCANMessage{
@@ -155,7 +156,7 @@ bool Smoco::setSoftLimitPosition(int32_t positionA, int32_t positionB) {
 
 bool Smoco::sendSoftLimitPosition() {
   return m_canBus->tryToSend(CANMessage{
-      .id = (m_canID << 4) | MESSAGE_ID_SOFT_LIMIT,
+      .id = (m_canID << 4) | SMOCO_MESSAGE_ID_SOFT_LIMIT,
       .len = 8,
       .data64 =
           SmocoCANMessage{
@@ -169,7 +170,7 @@ bool Smoco::calibratePosition(int16_t dutyCycle, int32_t limitSwitchPosition) {
   m_calibrationPosition = limitSwitchPosition;
   m_calibrated = false;
   return m_canBus->tryToSend(CANMessage{
-      .id = (m_canID << 4) | MESSAGE_ID_CALIBRATE,
+      .id = (m_canID << 4) | SMOCO_MESSAGE_ID_CALIBRATE,
       .len = 6,
       .data64 =
           SmocoCANMessage{
@@ -182,7 +183,7 @@ bool Smoco::calibratePosition(int16_t dutyCycle, int32_t limitSwitchPosition) {
 bool Smoco::debugTelemetry(uint8_t enable) {
   m_debugTelemetryEnabled = enable;
   return m_canBus->tryToSend(CANMessage{
-      .id = (m_canID << 4) | MESSAGE_ID_DEBUG,
+      .id = (m_canID << 4) | SMOCO_MESSAGE_ID_DEBUG,
       .len = 1,
       .data64 =
           SmocoCANMessage{.debugTelemetry = {.enable = m_debugTelemetryEnabled}}
@@ -191,25 +192,24 @@ bool Smoco::debugTelemetry(uint8_t enable) {
 
 bool Smoco::stopAndReset() {
   return m_canBus->tryToSend(
-      CANMessage{.id = (m_canID << 4) | MESSAGE_ID_STOP, .len = 0});
+      CANMessage{.id = (m_canID << 4) | SMOCO_MESSAGE_ID_STOP, .len = 0});
 }
 
 bool Smoco::echoRequest(uint64_t payload) {
-  if (millis() - m_lastEchoResponseTime > m_pingTimeout){
-    // Very big numer indicating smoco dropped
-    m_pingTime = UINT16_MAX;
-  } 
   m_echoRequestPayload = payload;
+  m_echoRequestAt = millis();
   return m_canBus->tryToSend(CANMessage{
-      .id = (m_canID << 4) | MESSAGE_ID_ECHO_REQUEST,
+      .id = (m_canID << 4) | SMOCO_MESSAGE_ID_ECHO_REQUEST,
       .len = 8,
       .data64 =
-          SmocoCANMessage{.echoRequestPayload = {.payload = m_echoRequestPayload}}
+          SmocoCANMessage{
+              .echoRequestPayload = {.payload = m_echoRequestPayload}}
               .data64});
 }
 
 bool Smoco::ping() {
-  m_pinging = true;
+  if (millis() > m_echoRequestAt + m_pingTimeout) {
+    m_pingTime = m_pingTimeout;
+  };
   return echoRequest(millis());
 }
-
