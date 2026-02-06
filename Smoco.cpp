@@ -45,6 +45,7 @@ void Smoco::sync(CANMessage message) {
         case SMOCO_MESSAGE_ID_ECHO_REPLY:
             m_echoResponse = smocoCANMessage->echoReply.payload;
             m_pingTime = millis() - m_echoResponse;
+            m_lastPingReply = millis();
             break;
         }
     }
@@ -106,7 +107,7 @@ bool Smoco::setRampRate(double rampRate) {
 
 bool Smoco::sendRampRate() {
     return canBus->tryToSend(CANMessage{.id = (canID << 4) | SMOCO_MESSAGE_ID_SMOOTHING,
-                                        .len = 2,
+                                        .len = 8,
                                         .data64 = SmocoCANMessage{.setRampRate = {.rampRate = m_rampRate}}.data64});
 }
 
@@ -165,7 +166,6 @@ bool Smoco::stopAndReset() {
 
 bool Smoco::echoRequest(uint64_t payload) {
     m_echoRequestPayload = payload;
-    m_echoRequestAt = millis();
     return canBus->tryToSend(
         CANMessage{.id = (canID << 4) | SMOCO_MESSAGE_ID_ECHO_REQUEST,
                    .len = 8,
@@ -173,7 +173,7 @@ bool Smoco::echoRequest(uint64_t payload) {
 }
 
 bool Smoco::ping() {
-    if (millis() > m_echoRequestAt + pingTimeout) {
+    if (millis() > m_lastPingReply + pingTimeout) {
         m_pingTime = pingTimeout;
     };
     return echoRequest(millis());

@@ -127,7 +127,7 @@ private:
     bool m_softLimitA;   // true: soft limit A reached
     bool m_softLimitB;   // true: soft limit B reached
 
-    uint32_t m_echoRequestAt;      // (ms) time echo request was sent
+    uint32_t m_lastPingReply;      // (ms) time last ping reply was received
     uint64_t m_echoRequestPayload; // payload of most recent sent Echo Request
     uint64_t m_echoResponse;       // payload of most recent received Echo Reply
     // (ms) ping round trip time or UINT16_MAX after ping is called when millis() > m_echoRequestAt + m_pingTimeout
@@ -170,7 +170,7 @@ public:
     bool getSoftLimitA() const { return m_softLimitA; }     // true: soft limit A reached
     bool getSoftLimitB() const { return m_softLimitB; }     // true: soft limit B reached
 
-    uint32_t getEchoRequestAt() const { return m_echoRequestAt; }           // (ms) time echo request was sent
+    uint32_t getLastPingReply() const { return m_lastPingReply; }           // (ms) time echo request was sent
     uint64_t getEchoRequestPayload() const { return m_echoRequestPayload; } // payload of most recent sent Echo Request
     uint64_t getEchoResponse() const { return m_echoResponse; } // payload of most recent received Echo Reply
     uint64_t getPingTime() const { return m_pingTime; }
@@ -182,7 +182,7 @@ public:
 
     ACAN_T4 *canBus;
     uint32_t canID;               // Upper 2 nybbles of CAN ID
-    uint64_t pingTimeout = 10000; // (ms)
+    uint64_t pingTimeout = 3000; // (ms)
 
     Smoco(ACAN_T4 *canBus, uint8_t canID);
 
