@@ -104,13 +104,14 @@ private:
     int16_t m_velocity; // (step/s)
     uint8_t m_current;  // (A)
 
-    bool m_ignoreLimit;       // true: ignore limit switch actuation
-    int16_t m_dutyCycle;      // (1/32768)
-    uint16_t m_errorGain;     // (1/1024)
-    int32_t m_targetPosition; // (step)
-    int32_t m_targetVelocity; // (step/s)
-    uint16_t m_targetCurrent; // (A)
-    double m_rampRate;        // (1/s)
+    bool m_ignoreForwardLimit = false; // true: ignore forward limit switch actuation
+    bool m_ignoreReverseLimit = false; // true: ignore reverse limit switch actuation
+    int16_t m_dutyCycle;       // (1/32768)
+    uint16_t m_errorGain;      // (1/1024)
+    int32_t m_targetPosition;  // (step)
+    int32_t m_targetVelocity;  // (step/s)
+    uint16_t m_targetCurrent;  // (A)
+    double m_rampRate;         // (1/s)
     struct PID m_PID;
     int32_t m_softLimitAPosition;   // (step)
     int32_t m_softLimitBPosition;   // (step)
@@ -147,13 +148,14 @@ public:
     int16_t getVelocity() const { return m_velocity; } // (step/s)
     uint8_t getCurrent() const { return m_current; }   // (A)
 
-    bool getIgnoreLimit() const { return m_ignoreLimit; }          // true: ignore limit switch actuation
-    int16_t getDutyCycle() const { return m_dutyCycle; }           // (1/32768)
-    uint16_t getErrorGain() const { return m_errorGain; }          // (1/1024)
-    int32_t getTargetPosition() const { return m_targetPosition; } // (step)
-    int32_t getTargetVelocity() const { return m_targetVelocity; } // (step/s)
-    uint16_t getTargetCurrent() const { return m_targetCurrent; }  // (A)
-    double getRampRate() const { return m_rampRate; }              // (1/s)
+    bool getIgnoreForwardLimit() const { return m_ignoreForwardLimit; } // true: ignore forward limit switch actuation
+    bool getIgnoreReverseLimit() const { return m_ignoreReverseLimit; } // true: ignore reverse limit switch actuation
+    int16_t getDutyCycle() const { return m_dutyCycle; }                // (1/32768)
+    uint16_t getErrorGain() const { return m_errorGain; }               // (1/1024)
+    int32_t getTargetPosition() const { return m_targetPosition; }      // (step)
+    int32_t getTargetVelocity() const { return m_targetVelocity; }      // (step/s)
+    uint16_t getTargetCurrent() const { return m_targetCurrent; }       // (A)
+    double getRampRate() const { return m_rampRate; }                   // (1/s)
     PID getPID() const { return m_PID; }
     int32_t getSoftLimitAPosition() const { return m_softLimitAPosition; }     // (step)
     int32_t getSoftLimitBPosition() const { return m_softLimitBPosition; }     // (step)
@@ -181,15 +183,16 @@ public:
     SmocoDebugTelemetry getDebugTelemetry() const { return m_debugTelemetry; }
 
     ACAN_T4 *canBus;
-    uint32_t canID;               // Upper 2 nybbles of CAN ID
+    uint32_t canID;              // Upper 2 nybbles of CAN ID
     uint64_t pingTimeout = 3000; // (ms)
 
     Smoco(ACAN_T4 *canBus, uint8_t canID);
 
-    bool driveOpenLoop(int16_t dutyCycle, bool ignoreLimit = false);
-    bool driveTargetPosition(int32_t targetPosition, uint16_t errorGain, bool ignoreLimit = false);
-    bool driveTargetVelocity(int32_t targetVelocity, uint16_t errorGain, bool ignoreLimit = false);
-    bool driveTargetCurrent(int16_t targetCurrent, uint16_t errorGain, bool ignoreLimit = false);
+    bool driveOpenLoop(int16_t dutyCycle);
+    bool driveTargetPosition(int32_t targetPosition, uint16_t errorGain);
+    bool driveTargetVelocity(int32_t targetVelocity, uint16_t errorGain);
+    bool driveTargetCurrent(int16_t targetCurrent, uint16_t errorGain);
+    void configIgnoreLimits(bool forward, bool reverse); // NOTE: effective only after next driveXXXX() call
     bool setRampRate(double rampRate);
     bool setPID(uint16_t P, uint16_t I, uint16_t D);
     bool setSoftLimitPosition(int32_t positionA, int32_t positionB);

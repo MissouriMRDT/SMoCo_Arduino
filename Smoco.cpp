@@ -51,53 +51,82 @@ void Smoco::sync(CANMessage message) {
     }
 }
 
-bool Smoco::driveOpenLoop(int16_t dutyCycle, bool ignoreLimit) {
+bool Smoco::driveOpenLoop(int16_t dutyCycle) {
+    bool ignoreLimit = false;
+    if (dutyCycle > 0) {
+        ignoreLimit = m_ignoreForwardLimit;
+    } else if (dutyCycle < 0) {
+        ignoreLimit = m_ignoreReverseLimit;
+    }
+
     m_dutyCycle = dutyCycle;
-    m_ignoreLimit = !!ignoreLimit;
     return canBus->tryToSend(
         CANMessage{.id = (canID << 4) | SMOCO_MESSAGE_ID_TARGET,
                    .len = 3,
-                   .data64 = SmocoCANMessage{.target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_OPEN_LOOP | m_ignoreLimit),
+                   .data64 = SmocoCANMessage{.target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_OPEN_LOOP | ignoreLimit),
                                                         .openLoop = {.dutyCycle = m_dutyCycle}}}
                                  .data64});
 }
 
-bool Smoco::driveTargetPosition(int32_t targetPosition, uint16_t errorGain, bool ignoreLimit) {
+bool Smoco::driveTargetPosition(int32_t targetPosition, uint16_t errorGain) {
+    bool ignoreLimit = false;
+    if (targetPosition > m_targetPosition) {
+        ignoreLimit = m_ignoreForwardLimit;
+    } else if (targetPosition < m_targetPosition) {
+        ignoreLimit = m_ignoreReverseLimit;
+    }
+
     m_targetPosition = targetPosition;
     m_errorGain = errorGain;
-    m_ignoreLimit = !!ignoreLimit;
     return canBus->tryToSend(CANMessage{
         .id = (canID << 4) | SMOCO_MESSAGE_ID_TARGET,
         .len = 7,
         .data64 =
-            SmocoCANMessage{.target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_POSITION | m_ignoreLimit),
+            SmocoCANMessage{.target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_POSITION | ignoreLimit),
                                        .targetPosition = {.errorGain = m_errorGain, .position = m_targetPosition}}}
                 .data64});
 }
 
-bool Smoco::driveTargetVelocity(int32_t targetVelocity, uint16_t errorGain, bool ignoreLimit) {
+bool Smoco::driveTargetVelocity(int32_t targetVelocity, uint16_t errorGain) {
+    bool ignoreLimit = false;
+    if (targetVelocity > 0) {
+        ignoreLimit = m_ignoreForwardLimit;
+    } else if (targetVelocity < 0) {
+        ignoreLimit = m_ignoreReverseLimit;
+    }
+
     m_targetVelocity = targetVelocity;
     m_errorGain = errorGain;
-    m_ignoreLimit = !!ignoreLimit;
     return canBus->tryToSend(CANMessage{
         .id = (canID << 4) | SMOCO_MESSAGE_ID_TARGET,
         .len = 7,
         .data64 =
-            SmocoCANMessage{.target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_VELOCITY | m_ignoreLimit),
+            SmocoCANMessage{.target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_VELOCITY | ignoreLimit),
                                        .targetVelocity = {.errorGain = m_errorGain, .velocity = m_targetVelocity}}}
                 .data64});
 }
 
-bool Smoco::driveTargetCurrent(int16_t targetCurrent, uint16_t errorGain, bool ignoreLimit) {
+bool Smoco::driveTargetCurrent(int16_t targetCurrent, uint16_t errorGain) {
+    bool ignoreLimit = false;
+    if (targetCurrent > 0) {
+        ignoreLimit = m_ignoreForwardLimit;
+    } else if (targetCurrent < 0) {
+        ignoreLimit = m_ignoreReverseLimit;
+    }
+
     m_targetCurrent = targetCurrent;
     m_errorGain = errorGain;
-    m_ignoreLimit = !!ignoreLimit;
     return canBus->tryToSend(CANMessage{
         .id = (canID << 4) | SMOCO_MESSAGE_ID_TARGET,
         .len = 5,
-        .data64 = SmocoCANMessage{.target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_CURRENT | m_ignoreLimit),
+        .data64 = SmocoCANMessage{.target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_CURRENT | ignoreLimit),
                                              .targetCurrent = {.errorGain = m_targetCurrent, .current = targetCurrent}}}
                       .data64});
+}
+
+void Smoco::configIgnoreLimits(bool forward, bool reverse) {
+    m_ignoreForwardLimit = forward;
+    m_ignoreReverseLimit = reverse;
 }
 
 bool Smoco::setRampRate(double rampRate) {
