@@ -68,7 +68,7 @@ bool Smoco::driveOpenLoop(int16_t dutyCycle) {
                                  .data64});
 }
 
-bool Smoco::driveTargetPosition(int32_t targetPosition, uint16_t errorGain) {
+bool Smoco::driveTargetPosition(int32_t targetPosition, float errorGain) {
     bool ignoreLimit = false;
     if (targetPosition > m_targetPosition) {
         ignoreLimit = m_ignoreForwardLimit;
@@ -78,16 +78,16 @@ bool Smoco::driveTargetPosition(int32_t targetPosition, uint16_t errorGain) {
 
     m_targetPosition = targetPosition;
     m_errorGain = errorGain;
-    return canBus->tryToSend(CANMessage{
-        .id = (canID << 4) | SMOCO_MESSAGE_ID_TARGET,
-        .len = 7,
-        .data64 =
-            SmocoCANMessage{.target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_POSITION | ignoreLimit),
-                                       .targetPosition = {.errorGain = m_errorGain, .position = m_targetPosition}}}
-                .data64});
+    return canBus->tryToSend(
+        CANMessage{.id = (canID << 4) | SMOCO_MESSAGE_ID_TARGET,
+                   .len = 7,
+                   .data64 = SmocoCANMessage{.target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_POSITION | ignoreLimit),
+                                                        .targetPosition = {.errorGain = (uint16_t)(m_errorGain * 1024),
+                                                                           .position = m_targetPosition}}}
+                                 .data64});
 }
 
-bool Smoco::driveTargetVelocity(int32_t targetVelocity, uint16_t errorGain) {
+bool Smoco::driveTargetVelocity(int32_t targetVelocity, float errorGain) {
     bool ignoreLimit = false;
     if (targetVelocity > 0) {
         ignoreLimit = m_ignoreForwardLimit;
@@ -97,16 +97,16 @@ bool Smoco::driveTargetVelocity(int32_t targetVelocity, uint16_t errorGain) {
 
     m_targetVelocity = targetVelocity;
     m_errorGain = errorGain;
-    return canBus->tryToSend(CANMessage{
-        .id = (canID << 4) | SMOCO_MESSAGE_ID_TARGET,
-        .len = 7,
-        .data64 =
-            SmocoCANMessage{.target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_VELOCITY | ignoreLimit),
-                                       .targetVelocity = {.errorGain = m_errorGain, .velocity = m_targetVelocity}}}
-                .data64});
+    return canBus->tryToSend(
+        CANMessage{.id = (canID << 4) | SMOCO_MESSAGE_ID_TARGET,
+                   .len = 7,
+                   .data64 = SmocoCANMessage{.target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_VELOCITY | ignoreLimit),
+                                                        .targetVelocity = {.errorGain = (uint16_t)(m_errorGain * 1024),
+                                                                           .velocity = m_targetVelocity}}}
+                                 .data64});
 }
 
-bool Smoco::driveTargetCurrent(int16_t targetCurrent, uint16_t errorGain) {
+bool Smoco::driveTargetCurrent(float targetCurrent, float errorGain) {
     bool ignoreLimit = false;
     if (targetCurrent > 0) {
         ignoreLimit = m_ignoreForwardLimit;
@@ -119,9 +119,13 @@ bool Smoco::driveTargetCurrent(int16_t targetCurrent, uint16_t errorGain) {
     return canBus->tryToSend(CANMessage{
         .id = (canID << 4) | SMOCO_MESSAGE_ID_TARGET,
         .len = 5,
-        .data64 = SmocoCANMessage{.target = {.sid = (uint8_t)(SMOCO_MESSAGE_SID_CURRENT | ignoreLimit),
-                                             .targetCurrent = {.errorGain = m_targetCurrent, .current = targetCurrent}}}
-                      .data64});
+        .data64 = SmocoCANMessage{
+            .target = {
+                .sid = (uint8_t)(SMOCO_MESSAGE_SID_CURRENT | ignoreLimit),
+                .targetCurrent = {
+                    .errorGain = (uint16_t)(m_targetCurrent * 1024),
+                    .current = (int16_t)(targetCurrent * 8) // TODO: Update scaling factor when current is supported
+                }}}.data64});
 }
 
 void Smoco::configIgnoreLimits(bool forward, bool reverse) {
@@ -140,7 +144,7 @@ bool Smoco::sendRampRate() {
                                         .data64 = SmocoCANMessage{.setRampRate = {.rampRate = m_rampRate}}.data64});
 }
 
-bool Smoco::setPID(uint16_t P, uint16_t I, uint16_t D) {
+bool Smoco::setPID(float P, float I, float D) {
     m_PID.P = P;
     m_PID.I = I;
     m_PID.D = D;
@@ -148,10 +152,12 @@ bool Smoco::setPID(uint16_t P, uint16_t I, uint16_t D) {
 }
 
 bool Smoco::sendPID() {
-    return canBus->tryToSend(
-        CANMessage{.id = (canID << 4) | SMOCO_MESSAGE_ID_PID,
-                   .len = 6,
-                   .data64 = SmocoCANMessage{.setPID = {.p = m_PID.P, .i = m_PID.I, .d = m_PID.D}}.data64});
+    return canBus->tryToSend(CANMessage{.id = (canID << 4) | SMOCO_MESSAGE_ID_PID,
+                                        .len = 6,
+                                        .data64 = SmocoCANMessage{.setPID = {.p = (uint16_t)(m_PID.P * 256),
+                                                                             .i = (uint16_t)(m_PID.I * 256),
+                                                                             .d = (uint16_t)(m_PID.D * 256)}}
+                                                      .data64});
 }
 
 bool Smoco::setSoftLimitPosition(int32_t positionA, int32_t positionB) {
@@ -181,7 +187,7 @@ bool Smoco::calibratePosition(int16_t dutyCycle, int32_t limitSwitchPosition) {
                                  .data64});
 }
 
-bool Smoco::debugTelemetry(uint8_t enable) {
+bool Smoco::debugTelemetry(bool enable) {
     m_debugTelemetryEnabled = enable;
     return canBus->tryToSend(
         CANMessage{.id = (canID << 4) | SMOCO_MESSAGE_ID_DEBUG,
