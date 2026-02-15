@@ -174,7 +174,7 @@ public:
     bool getLimitSwitchB() const { return m_limitSwitchB; } // true: limit switch B depressed
     bool getSoftLimitA() const { return m_softLimitA; }     // true: soft limit A reached
     bool getSoftLimitB() const { return m_softLimitB; }     // true: soft limit B reached
-    bool isPositionWithinLimits(uint32_t position) const { return position > m_softLimitAPosition && position < m_softLimitBPosition; } // true: given position is between the soft limits
+    bool isPositionWithinLimits(int32_t position) const { return position > m_softLimitAPosition && position < m_softLimitBPosition; } // true: given position is between the soft limits
 
     uint32_t getLastPingReply() const { return m_lastPingReply; }           // (ms) time echo request was sent
     uint64_t getEchoRequestPayload() const { return m_echoRequestPayload; } // payload of most recent sent Echo Request
