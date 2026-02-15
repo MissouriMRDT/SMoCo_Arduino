@@ -134,6 +134,9 @@ private:
     // (ms) ping round trip time or UINT16_MAX after ping is called when millis() > m_echoRequestAt + m_pingTimeout
     uint64_t m_pingTime = UINT16_MAX;
 
+    int32_t m_encoderZeroPosition = 0;
+    float m_stepsPerDegree = 1;
+
     uint8_t m_commandErrorID; // ID of the last sent command SMoCo considered invalid
 
     SmocoDebugTelemetry m_debugTelemetry;
@@ -171,6 +174,7 @@ public:
     bool getLimitSwitchB() const { return m_limitSwitchB; } // true: limit switch B depressed
     bool getSoftLimitA() const { return m_softLimitA; }     // true: soft limit A reached
     bool getSoftLimitB() const { return m_softLimitB; }     // true: soft limit B reached
+    bool isPositionWithinLimits(uint32_t position) const { return position > m_softLimitAPosition && position < m_softLimitBPosition; } // true: given position is between the soft limits
 
     uint32_t getLastPingReply() const { return m_lastPingReply; }           // (ms) time echo request was sent
     uint64_t getEchoRequestPayload() const { return m_echoRequestPayload; } // payload of most recent sent Echo Request
@@ -203,5 +207,28 @@ public:
     void sync(CANMessage msg); // Update telemetry variables from the received
                                // message and send a response if necessary
     bool ping();
+
+    // Angle based functions
+
+    // configure conversion to apply to target position so that you can work with angles instead of raw steps
+    void configAngleConversion(int32_t encoderZeroPosition, float stepsPerDegree) { m_encoderZeroPosition = encoderZeroPosition; m_stepsPerDegree = stepsPerDegree; }
+    float stepsToDegrees(int32_t steps) const {
+        return (steps - m_encoderZeroPosition) / m_stepsPerDegree;
+    }
+    int32_t degreesToSteps(float degrees) const {
+        return (degrees * m_stepsPerDegree) + m_encoderZeroPosition;
+    }
+    float getAngle() const { return stepsToDegrees(m_position); } // (deg, i.e. units defined in configAngleConversion)
+    float getAngularVelocity() const { return stepsToDegrees(m_velocity); } // (deg/s, i.e. units defined in configAngleConversion)
+    float getTargetAngle() const { return stepsToDegrees(m_targetPosition); } // (deg, i.e. units defined in configAngleConversion)
+    float getTargetAngularVelocity() const { return stepsToDegrees(m_targetVelocity); } // (deg/s, i.e. units defined in configAngleConversion)
+    float getSoftLimitAAngle() const { return stepsToDegrees(m_softLimitAPosition); } // (deg, i.e. units defined in configAngleConversion)
+    float getSoftLimitBAngle() const { return stepsToDegrees(m_softLimitBPosition); } // (deg, i.e. units defined in configAngleConversion)
+    bool isAngleWithinLimits(float angle) const { return isPositionWithinLimits(degreesToSteps(angle)); } // isPositionWithinLimits but with angle conversion applied
+    bool driveTargetAngle(float targetAngle, float errorGain) { return driveTargetPosition(degreesToSteps(targetAngle), errorGain); } // driveTargetPosition but with angle conversion applied
+    bool driveTargetAngularVelocity(float targetVelocity, float errorGain) { return driveTargetVelocity(degreesToSteps(targetVelocity), errorGain); } // driveTargetVelocity but with angle conversion applied
+    bool setSoftLimitAngle(float angleA, float angleB) { return setSoftLimitPosition(degreesToSteps(angleA), degreesToSteps(angleB)); } // setSoftLimitPosition but with angle conversion applied
+    bool calibrateAngle(int16_t dutyCycle, float limitSwitchAngle) { return calibratePosition(dutyCycle, degreesToSteps(limitSwitchAngle)); } // calibratePosition but with angle conversion applied
+
 };
 #endif
