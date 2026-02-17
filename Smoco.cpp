@@ -69,7 +69,13 @@ bool Smoco::driveOpenLoop(int16_t dutyCycle) {
 }
 
 bool Smoco::driveTargetPosition(int32_t targetPosition, float errorGain) {
-    
+    bool ignoreLimit = false;
+    if (targetPosition > m_targetPosition) {
+        ignoreLimit = m_ignoreForwardLimit;
+    } else if (targetPosition < m_targetPosition) {
+        ignoreLimit = m_ignoreReverseLimit;
+    }
+
     m_targetPosition = targetPosition;
     m_errorGain = errorGain;
 
@@ -78,13 +84,6 @@ bool Smoco::driveTargetPosition(int32_t targetPosition, float errorGain) {
     }
     if (m_targetPosition >= m_softLimitBPosition) {
         m_targetPosition = m_softLimitBPosition;
-    }
-
-    bool ignoreLimit = false;
-    if (m_targetPosition > m_targetPosition) {
-        ignoreLimit = m_ignoreForwardLimit;
-    } else if (m_targetPosition < m_targetPosition) {
-        ignoreLimit = m_ignoreReverseLimit;
     }
 
     return canBus->tryToSend(
