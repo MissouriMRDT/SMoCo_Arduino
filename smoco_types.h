@@ -1,6 +1,9 @@
 #ifndef __SMOCO_H
 #define __SMOCO_H
 
+// File copied from https://github.com/MissouriMRDT/Smart_MoCo
+// If updating, any unsopported C features need to be moved to smoco_types.c
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -100,26 +103,35 @@ typedef struct __attribute__((__packed__)) {
 #define SMOCO_MID_TARGET_VELOCITY 0x12
 #define SMOCO_MID_TARGET_CURRENT 0x13
 
-static const uint32_t SMOCO_WIDTH[1 << SMOCO_WIDTH_MID] = {
-    [SMOCO_MID_POSITION] = 8,
-    [SMOCO_MID_POSITION_CALIBRATED] = 0,
-    [SMOCO_MID_ERROR] = 1,
-    [SMOCO_MID_ECHO_REPLY] = 8,
-    [SMOCO_MID_STOP] = 0,
-    [SMOCO_MID_RAMP_RATE] = 4,
-    [SMOCO_MID_PI] = 8,
-    [SMOCO_MID_D] = 4,
-    [SMOCO_MID_IGNORE_LIMIT] = 1,
-    [SMOCO_MID_SOFT_LIMIT] = 8,
-    [SMOCO_MID_CALIBRATE] = 6,
-    [SMOCO_MID_DEBUG] = 1,
-    [SMOCO_MID_DUTY_CYCLE_RANGE] = 8,
-    [SMOCO_MID_ECHO_REQUEST] = 8,
-    [SMOCO_MID_OPEN_LOOP] = 2,
-    [SMOCO_MID_TARGET_POSITION] = 6,
-    [SMOCO_MID_TARGET_VELOCITY] = 6,
-    [SMOCO_MID_TARGET_CURRENT] = 4,
-};
+
+const extern uint32_t SMOCO_WIDTH[1 << SMOCO_WIDTH_MID];
+
+// This C99 extension isn't implemented in the Teensy's C++ compiler, so it has
+// been moved to an externally linked C file to trick GCC into compiling it.
+// No, extern "C" {} doesn't work
+
+const extern uint32_t SMOCO_WIDTH[1 << SMOCO_WIDTH_MID];
+
+// static const extern uint32_t SMOCO_WIDTH[1 << SMOCO_WIDTH_MID] = {
+//     [SMOCO_MID_POSITION] = 8,
+//     [SMOCO_MID_POSITION_CALIBRATED] = 0,
+//     [SMOCO_MID_ERROR] = 1,
+//     [SMOCO_MID_ECHO_REPLY] = 8,
+//     [SMOCO_MID_STOP] = 0,
+//     [SMOCO_MID_RAMP_RATE] = 4,
+//     [SMOCO_MID_PI] = 8,
+//     [SMOCO_MID_D] = 4,
+//     [SMOCO_MID_IGNORE_LIMIT] = 1,
+//     [SMOCO_MID_SOFT_LIMIT] = 8,
+//     [SMOCO_MID_CALIBRATE] = 6,
+//     [SMOCO_MID_DEBUG] = 1,
+//     [SMOCO_MID_DUTY_CYCLE_RANGE] = 8,
+//     [SMOCO_MID_ECHO_REQUEST] = 8,
+//     [SMOCO_MID_OPEN_LOOP] = 2,
+//     [SMOCO_MID_TARGET_POSITION] = 6,
+//     [SMOCO_MID_TARGET_VELOCITY] = 6,
+//     [SMOCO_MID_TARGET_CURRENT] = 4,
+// };
 
 #define SMOCO_ID_DEBUG 0x7F0
 #define SMOCO_WIDTH_DEBUG 4
