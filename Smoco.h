@@ -29,7 +29,7 @@ public:
 private:
     int32_t m_position; // (step)
     int16_t m_velocity; // (step/s)
-    uint8_t m_current;  // (A)
+    float m_current;    // (A)
 
     bool m_ignoreLimitForward = false; // true: ignore limit switch B actuation
     bool m_ignoreLimitReverse = false; // true: ignore limit switch A actuation
@@ -61,7 +61,7 @@ private:
     uint64_t m_echoRequestPayload; // payload of most recent sent Echo Request
     uint64_t m_echoResponse;       // payload of most recent received Echo Reply
     // (ms) ping round trip time or UINT16_MAX after ping is called when millis() > m_echoRequestAt + m_pingTimeout
-    uint64_t m_pingTime = UINT16_MAX;
+    uint64_t m_pingTime = UINT64_MAX;
 
     int32_t m_encoderZeroPosition = 0;
     float m_stepsPerDegree = 1;
@@ -84,7 +84,7 @@ public:
 
     int32_t getPosition() const { return m_position; } // (step)
     int16_t getVelocity() const { return m_velocity; } // (step/s)
-    uint8_t getCurrent() const { return m_current; }   // (A)
+    float getCurrent() const { return m_current; }     // (A)
 
     bool getIgnoreLimitForward() const { return m_ignoreLimitForward; } // true: ignore limit switch B actuation
     bool getIgnoreLimitReverse() const { return m_ignoreLimitReverse; } // true: ignore limit switch A actuation
@@ -196,8 +196,8 @@ public:
 
 private:
     bool sendCommand(uint32_t mid, const SmocoCANMessage &&data) {
-        return canBus->tryToSend(
-            CANMessage{.id = mid, .len = (uint8_t)SMOCO_WIDTH[mid], .data64 = *((uint64_t *)&data)});
+        return canBus->tryToSend(CANMessage{
+            .id = (canID << SMOCO_WIDTH_MID) | mid, .len = (uint8_t)SMOCO_WIDTH[mid], .data64 = *((uint64_t *)&data)});
     }
 };
 #endif

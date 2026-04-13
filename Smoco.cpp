@@ -14,9 +14,10 @@ void Smoco::sync(CANMessage message) {
     if (message.id >> SMOCO_WIDTH_MID != canID) return; // Not this SMoCo.
 
     SmocoCANMessage *messageData = (SmocoCANMessage *)message.data;
+    uint32_t mid = message.id & ((1 << SMOCO_WIDTH_MID) - 1);
     if (message.rtr) {
         // Send missing parameter.
-        switch (message.id & ((1 << SMOCO_WIDTH_MID) - 1)) {
+        switch (mid) {
         case SMOCO_MID_RAMP_RATE:
             sendRampRate();
             break;
@@ -37,16 +38,16 @@ void Smoco::sync(CANMessage message) {
             break;
         }
     } else {
-        switch (message.id & ((1 << SMOCO_WIDTH_MID) - 1)) {
+        switch (mid) {
         case SMOCO_MID_POSITION:
             m_position = messageData->SMOCO_MID_POSITION_.position;
             m_velocity = messageData->SMOCO_MID_POSITION_.velocity;
-            m_current = messageData->SMOCO_MID_POSITION_.current;
+            m_current = (float)messageData->SMOCO_MID_POSITION_.current / 8.0f;
             // Get the bit at each position and convert it to a bool.
-            m_limitSwitchReverse = !!(messageData->SMOCO_MID_POSITION_.flags & (1 << 7));
-            m_limitSwitchForward = !!(messageData->SMOCO_MID_POSITION_.flags & (1 << 6));
-            m_softLimitReverse = !!(messageData->SMOCO_MID_POSITION_.flags & (1 << 5));
-            m_softLimitForward = !!(messageData->SMOCO_MID_POSITION_.flags & (1 << 4));
+            m_limitSwitchReverse = !!(messageData->SMOCO_MID_POSITION_.flags & (1 << 0));
+            m_limitSwitchForward = !!(messageData->SMOCO_MID_POSITION_.flags & (1 << 1));
+            m_softLimitReverse = !!(messageData->SMOCO_MID_POSITION_.flags & (1 << 2));
+            m_softLimitForward = !!(messageData->SMOCO_MID_POSITION_.flags & (1 << 3));
             break;
         case SMOCO_MID_POSITION_CALIBRATED:
             m_calibrated = true;
@@ -188,7 +189,7 @@ bool Smoco::echoRequest(uint64_t payload) {
 
 bool Smoco::ping() {
     if (millis() > m_lastPingReply + pingTimeout) {
-        m_pingTime = pingTimeout;
+        m_pingTime = UINT64_MAX;
     };
     return echoRequest(millis());
 }
